@@ -6,7 +6,7 @@
     const tbody = document.getElementById("catalogBody");
     const countEl = document.getElementById("catalogCount");
 
-    const filtered = window.MOTORS_CATALOG.filter((m) => {
+    const filtered = window.MOTORS_CATALOG.filter(function (m) {
       const n1 = Math.round((60 * m.freq) / m.poles);
       const matchesText =
         m.name.toLowerCase().includes(query) ||
@@ -24,7 +24,7 @@
     }
 
     tbody.innerHTML = filtered
-      .map((m) => {
+      .map(function (m) {
         const n1 = Math.round((60 * m.freq) / m.poles);
         return (
           "<tr>" +

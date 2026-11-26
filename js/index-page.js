@@ -1,12 +1,10 @@
-/* Логика главной страницы: ввод данных, пресеты, графики Chart.js, таблица и экспорт */
+/* Логика главной страницы: ввод данных, пресеты, графики MotorCharts, таблица и экспорт */
 (function () {
   const STORAGE_KEY = "async_motor_last_input";
   let chartMech = null;
   let chartTorque = null;
   let chartCurrent = null;
   let lastResult = null;
-
-  const fieldIds = ["pNom", "uNom", "freq", "poles", "nNom", "eta", "cosPhi", "lambdaM", "kP", "kI", "coeffA"];
 
   function getEl(id) {
     return document.getElementById(id);
@@ -15,7 +13,7 @@
   function populatePresets() {
     const select = getEl("presetSelect");
     if (!select || !window.MOTORS_CATALOG) return;
-    window.MOTORS_CATALOG.forEach((m) => {
+    window.MOTORS_CATALOG.forEach(function (m) {
       const opt = document.createElement("option");
       opt.value = m.id;
       opt.textContent = m.name + " — " + m.pNom + " кВт, " + Math.round((60 * m.freq) / m.poles) + " об/мин";
@@ -71,8 +69,9 @@
       return;
     }
     box.classList.remove("hidden");
-    box.innerHTML = "<strong>Проверьте исходные данные:</strong><ul style='margin:0.35rem 0 0;padding-left:1.2rem;'>" +
-      errors.map((e) => "<li>" + e + "</li>").join("") +
+    box.innerHTML =
+      "<strong>Проверьте исходные данные:</strong><ul style='margin:0.35rem 0 0;padding-left:1.2rem;'>" +
+      errors.map(function (e) { return "<li>" + e + "</li>"; }).join("") +
       "</ul>";
   }
 
@@ -89,23 +88,22 @@
       { label: "Пусковой ток Iп", val: s.iStart.toFixed(1) + " А", sub: "P₁ = " + s.p1.toFixed(2) + " кВт" }
     ];
 
-    const grid = getEl("metricsGrid");
-    grid.innerHTML = items
-      .map(
-        (m) =>
+    getEl("metricsGrid").innerHTML = items
+      .map(function (m) {
+        return (
           '<div class="metric-item">' +
           '<div class="metric-label">' + m.label + "</div>" +
           '<div class="metric-val">' + m.val + "</div>" +
           '<div class="metric-sub">' + m.sub + "</div>" +
           "</div>"
-      )
+        );
+      })
       .join("");
   }
 
   function renderTable(res) {
-    const tbody = getEl("resultsTableBody");
-    tbody.innerHTML = res.tableRows
-      .map((r) => {
+    getEl("resultsTableBody").innerHTML = res.tableRows
+      .map(function (r) {
         const cls = r.label ? ' class="row-highlight"' : "";
         const badge = r.label ? '<span class="badge">' + r.label + "</span>" : "";
         return (
@@ -124,187 +122,118 @@
   }
 
   function renderCharts(res) {
-    if (typeof Chart === "undefined") {
-      getEl("chartOfflineAlert").classList.remove("hidden");
-      return;
-    }
-    getEl("chartOfflineAlert").classList.add("hidden");
-
     const colors = window.getChartThemeColors();
     const s = res.summary;
     const showExt = getEl("extendedSlipToggle").checked;
 
-    const commonScales = (xTitle, yTitle) => ({
-      x: {
-        type: "linear",
-        title: { display: true, text: xTitle, color: colors.text, font: { weight: "600" } },
-        ticks: { color: colors.text },
-        grid: { color: colors.grid }
-      },
-      y: {
-        type: "linear",
-        title: { display: true, text: yTitle, color: colors.text, font: { weight: "600" } },
-        ticks: { color: colors.text },
-        grid: { color: colors.grid }
-      }
-    });
-
     // 1. Механическая характеристика n(M)
     if (chartMech) chartMech.destroy();
-    chartMech = new Chart(getEl("mechChart").getContext("2d"), {
-      type: "scatter",
-      plugins: [window.chartBgPlugin],
-      data: {
-        datasets: [
-          {
-            label: "Естественная n(M)",
-            data: res.curvePoints.map((pt) => ({ x: pt.M, y: pt.n })),
-            showLine: true,
-            borderColor: colors.primary,
-            backgroundColor: colors.primary,
-            borderWidth: 2.5,
-            pointRadius: 0,
-            tension: 0.15
-          },
-          {
-            label: "Номинальная точка (Mн, nн)",
-            data: [{ x: s.mNom, y: res.input.nNom }],
-            backgroundColor: colors.tertiary,
-            borderColor: colors.bg,
-            borderWidth: 2,
-            pointRadius: 6
-          },
-          {
-            label: "Критическая точка (Mк, nк)",
-            data: [{ x: s.mCrit, y: s.nCrit }],
-            backgroundColor: colors.secondary,
-            borderColor: colors.bg,
-            borderWidth: 2,
-            pointRadius: 6
-          },
-          {
-            label: "Пусковая точка (Mп, 0)",
-            data: [{ x: s.mStartCalc, y: 0 }],
-            backgroundColor: colors.amber,
-            borderColor: colors.bg,
-            borderWidth: 2,
-            pointRadius: 6
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { labels: { color: colors.text, usePointStyle: true } },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => ctx.dataset.label + ": M = " + ctx.parsed.x.toFixed(2) + " Н·м, n = " + ctx.parsed.y.toFixed(1) + " об/мин"
-            }
-          }
+    chartMech = window.MotorCharts.createLineChart(getEl("mechChart"), {
+      xTitle: "Момент M, Н·м",
+      yTitle: "Частота вращения n, об/мин",
+      xMin: 0,
+      yMin: 0,
+      datasets: [
+        {
+          type: "line",
+          label: "Естественная n(M)",
+          data: res.curvePoints.map(function (pt) { return { x: pt.M, y: pt.n }; }),
+          color: colors.primary,
+          width: 2.6
         },
-        scales: {
-          x: { ...commonScales("Момент M, Н·м", "Частота вращения n, об/мин").x, min: 0 },
-          y: { ...commonScales("Момент M, Н·м", "Частота вращения n, об/мин").y, min: 0, suggestedMax: s.n1 * 1.05 }
+        {
+          type: "points",
+          label: "Номинальная (Mн, nн)",
+          data: [{ x: s.mNom, y: res.input.nNom, label: "Номинальная точка" }],
+          color: colors.tertiary,
+          radius: 6
+        },
+        {
+          type: "points",
+          label: "Критическая (Mк, nк)",
+          data: [{ x: s.mCrit, y: s.nCrit, label: "Критическая точка" }],
+          color: colors.secondary,
+          radius: 6
+        },
+        {
+          type: "points",
+          label: "Пусковая (Mп, 0)",
+          data: [{ x: s.mStartCalc, y: 0, label: "Пусковая точка" }],
+          color: colors.amber,
+          radius: 6
         }
+      ],
+      formatTooltip: function (pt) {
+        return "M = " + pt.x.toFixed(2) + " Н·м, n = " + pt.y.toFixed(1) + " об/мин";
       }
     });
 
-    // 2. Зависимость момента от скольжения M(s)
+    // 2. Момент от скольжения M(s)
     if (chartTorque) chartTorque.destroy();
     const torqueData = showExt
-      ? res.extendedPoints.map((pt) => ({ x: pt.s, y: pt.M }))
-      : res.curvePoints.map((pt) => ({ x: pt.s, y: pt.M }));
+      ? res.extendedPoints.map(function (pt) { return { x: pt.s, y: pt.M }; })
+      : res.curvePoints.map(function (pt) { return { x: pt.s, y: pt.M }; });
 
-    chartTorque = new Chart(getEl("torqueChart").getContext("2d"), {
-      type: "scatter",
-      plugins: [window.chartBgPlugin],
-      data: {
-        datasets: [
-          {
-            label: "Момент M(s)",
-            data: torqueData,
-            showLine: true,
-            borderColor: colors.purple,
-            backgroundColor: colors.purple,
-            borderWidth: 2.3,
-            pointRadius: 0,
-            tension: 0.18
-          },
-          {
-            label: "Номинал / Критическая",
-            data: [
-              { x: s.sNom, y: s.mNom },
-              { x: s.sCrit, y: s.mCrit }
-            ],
-            backgroundColor: [colors.tertiary, colors.secondary],
-            borderColor: colors.bg,
-            borderWidth: 2,
-            pointRadius: 5.5
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { labels: { color: colors.text, usePointStyle: true } },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => "s = " + ctx.parsed.x.toFixed(3) + ", M = " + ctx.parsed.y.toFixed(2) + " Н·м"
-            }
-          }
+    chartTorque = window.MotorCharts.createLineChart(getEl("torqueChart"), {
+      xTitle: "Скольжение s, о.е.",
+      yTitle: "Момент M, Н·м",
+      xMin: showExt ? -0.5 : 0,
+      xMax: showExt ? 1.5 : 1,
+      yMin: showExt ? undefined : 0,
+      datasets: [
+        {
+          type: "line",
+          label: "Момент M(s)",
+          data: torqueData,
+          color: colors.purple,
+          width: 2.4
         },
-        scales: commonScales("Скольжение s, о.е.", "Момент M, Н·м")
+        {
+          type: "points",
+          label: "Номинал / Критическая",
+          data: [
+            { x: s.sNom, y: s.mNom, label: "Номинальная (sн, Mн)", color: colors.tertiary },
+            { x: s.sCrit, y: s.mCrit, label: "Критическая (sк, Mк)", color: colors.secondary }
+          ],
+          color: [colors.tertiary, colors.secondary],
+          radius: 5.5
+        }
+      ],
+      formatTooltip: function (pt) {
+        return "s = " + pt.x.toFixed(3) + ", M = " + pt.y.toFixed(2) + " Н·м";
       }
     });
 
     // 3. Токовая характеристика I(s)
     if (chartCurrent) chartCurrent.destroy();
-    chartCurrent = new Chart(getEl("currentChart").getContext("2d"), {
-      type: "scatter",
-      plugins: [window.chartBgPlugin],
-      data: {
-        datasets: [
-          {
-            label: "Ток статора I(s)",
-            data: res.curvePoints.map((pt) => ({ x: pt.s, y: pt.I })),
-            showLine: true,
-            borderColor: colors.secondary,
-            backgroundColor: colors.secondary,
-            borderWidth: 2.3,
-            pointRadius: 0,
-            tension: 0.18
-          },
-          {
-            label: "I₀, Iн, Iп",
-            data: [
-              { x: 0, y: s.i0 },
-              { x: s.sNom, y: s.iNom },
-              { x: 1, y: s.iStart }
-            ],
-            backgroundColor: [colors.primary, colors.tertiary, colors.amber],
-            borderColor: colors.bg,
-            borderWidth: 2,
-            pointRadius: 5.5
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { labels: { color: colors.text, usePointStyle: true } },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => "s = " + ctx.parsed.x.toFixed(3) + ", I = " + ctx.parsed.y.toFixed(2) + " А"
-            }
-          }
+    chartCurrent = window.MotorCharts.createLineChart(getEl("currentChart"), {
+      xTitle: "Скольжение s, о.е.",
+      yTitle: "Ток статора I, А",
+      xMin: 0,
+      xMax: 1,
+      yMin: 0,
+      datasets: [
+        {
+          type: "line",
+          label: "Ток статора I(s)",
+          data: res.curvePoints.map(function (pt) { return { x: pt.s, y: pt.I }; }),
+          color: colors.secondary,
+          width: 2.4
         },
-        scales: {
-          x: { ...commonScales("Скольжение s, о.е.", "Ток статора I, А").x, min: 0, max: 1 },
-          y: { ...commonScales("Скольжение s, о.е.", "Ток статора I, А").y, min: 0 }
+        {
+          type: "points",
+          label: "Характерные точки (I₀, Iн, Iп)",
+          data: [
+            { x: 0, y: s.i0, label: "Ток холостого хода I₀", color: colors.primary },
+            { x: s.sNom, y: s.iNom, label: "Номинальный ток Iн", color: colors.tertiary },
+            { x: 1, y: s.iStart, label: "Пусковой ток Iп", color: colors.amber }
+          ],
+          color: [colors.primary, colors.tertiary, colors.amber],
+          radius: 5.5
         }
+      ],
+      formatTooltip: function (pt) {
+        return "s = " + pt.x.toFixed(3) + ", I = " + pt.y.toFixed(2) + " А";
       }
     });
   }
@@ -318,27 +247,21 @@
     }
     showErrors([]);
     lastResult = res;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(input));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(input));
+    } catch (e) {
+      // Игнорируем ограничения приватного режима
+    }
     renderMetrics(res);
     renderTable(res);
     renderCharts(res);
-  }
-
-  function downloadChartPng(chart, filename) {
-    if (!chart) return;
-    const link = document.createElement("a");
-    link.href = chart.toBase64Image("image/png", 1);
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   }
 
   function initInitialMotor() {
     const params = new URLSearchParams(window.location.search);
     const motorId = params.get("motor");
     if (motorId && window.MOTORS_CATALOG) {
-      const found = window.MOTORS_CATALOG.find((m) => m.id === motorId);
+      const found = window.MOTORS_CATALOG.find(function (m) { return m.id === motorId; });
       if (found) {
         getEl("presetSelect").value = found.id;
         fillForm(found);
@@ -346,22 +269,23 @@
       }
     }
 
-    const savedRaw = localStorage.getItem(STORAGE_KEY);
-    if (savedRaw) {
-      try {
+    try {
+      const savedRaw = localStorage.getItem(STORAGE_KEY);
+      if (savedRaw) {
         const saved = JSON.parse(savedRaw);
-        fillForm(saved);
-        getEl("refinedToggle").checked = Boolean(saved.refined);
-        if (saved.coeffA !== undefined) getEl("coeffA").value = saved.coeffA;
-        getEl("coeffAGroup").classList.toggle("hidden", !saved.refined);
-        return;
-      } catch (e) {
-        // Игнорируем поврежденный кэш
+        if (saved && saved.pNom > 0) {
+          fillForm(saved);
+          getEl("refinedToggle").checked = Boolean(saved.refined);
+          if (saved.coeffA !== undefined) getEl("coeffA").value = saved.coeffA;
+          getEl("coeffAGroup").classList.toggle("hidden", !saved.refined);
+          return;
+        }
       }
+    } catch (e) {
+      // Игнорируем поврежденный кэш
     }
 
-    // По умолчанию АИР100S4
-    const def = window.MOTORS_CATALOG.find((m) => m.id === "air100s4") || window.MOTORS_CATALOG[0];
+    const def = window.MOTORS_CATALOG.find(function (m) { return m.id === "air100s4"; }) || window.MOTORS_CATALOG[0];
     getEl("presetSelect").value = def.id;
     fillForm(def);
   }
@@ -371,7 +295,8 @@
     initInitialMotor();
 
     getEl("presetSelect").addEventListener("change", function () {
-      const m = window.MOTORS_CATALOG.find((item) => item.id === this.value);
+      const val = this.value;
+      const m = window.MOTORS_CATALOG.find(function (item) { return item.id === val; });
       if (m) {
         fillForm(m);
         runCalculation();
@@ -396,7 +321,7 @@
     });
 
     getEl("resetBtn").addEventListener("click", function () {
-      const def = window.MOTORS_CATALOG.find((m) => m.id === "air100s4") || window.MOTORS_CATALOG[0];
+      const def = window.MOTORS_CATALOG.find(function (m) { return m.id === "air100s4"; }) || window.MOTORS_CATALOG[0];
       getEl("presetSelect").value = def.id;
       getEl("refinedToggle").checked = false;
       getEl("coeffAGroup").classList.add("hidden");
@@ -416,15 +341,31 @@
       window.print();
     });
 
-    getEl("dlMechBtn").addEventListener("click", () => downloadChartPng(chartMech, "mech_characteristic_n_M.png"));
-    getEl("dlTorqueBtn").addEventListener("click", () => downloadChartPng(chartTorque, "torque_slip_M_s.png"));
-    getEl("dlCurrentBtn").addEventListener("click", () => downloadChartPng(chartCurrent, "current_slip_I_s.png"));
+    getEl("dlMechPngBtn").addEventListener("click", function () {
+      if (chartMech) chartMech.downloadPNG("mech_characteristic_n_M.png");
+    });
+    getEl("dlMechSvgBtn").addEventListener("click", function () {
+      if (chartMech) chartMech.downloadSVG("mech_characteristic_n_M.svg");
+    });
+
+    getEl("dlTorquePngBtn").addEventListener("click", function () {
+      if (chartTorque) chartTorque.downloadPNG("torque_slip_M_s.png");
+    });
+    getEl("dlTorqueSvgBtn").addEventListener("click", function () {
+      if (chartTorque) chartTorque.downloadSVG("torque_slip_M_s.svg");
+    });
+
+    getEl("dlCurrentPngBtn").addEventListener("click", function () {
+      if (chartCurrent) chartCurrent.downloadPNG("current_slip_I_s.png");
+    });
+    getEl("dlCurrentSvgBtn").addEventListener("click", function () {
+      if (chartCurrent) chartCurrent.downloadSVG("current_slip_I_s.svg");
+    });
 
     window.addEventListener("themechange", function () {
       if (lastResult) renderCharts(lastResult);
     });
 
-    // Авторасчет при загрузке
     runCalculation();
   });
 })();
