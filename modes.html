@@ -105,7 +105,10 @@
               <h2 class="card-title">Сравнение характеристик n(M)</h2>
               <p class="card-subtitle">Сплошная линия — естественная, пунктирная — искусственная</p>
             </div>
-            <button id="dlCompareBtn" type="button" class="btn btn-outline btn-sm no-print">PNG</button>
+            <div class="btn-row no-print">
+              <button id="dlComparePngBtn" type="button" class="btn btn-outline btn-sm">PNG</button>
+              <button id="dlCompareSvgBtn" type="button" class="btn btn-outline btn-sm">SVG</button>
+            </div>
           </div>
           <div class="chart-box chart-box-tall">
             <canvas id="compareChart"></canvas>
@@ -125,13 +128,13 @@
   <footer class="site-footer">
     <div class="footer-inner">
       <span>AsyncMotorCalc — веб-приложение для курсовой работы (3 семестр)</span>
-      <span>Методика: формула Клосса • Статический сайт для GitHub Pages</span>
+      <span>Методика: формула Клосса • Автономный статический сайт (GitHub Pages)</span>
     </div>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="js/motors-data.js"></script>
   <script src="js/calculator.js"></script>
+  <script src="js/charts.js"></script>
   <script src="js/modes-page.js"></script>
 </body>
 </html>
