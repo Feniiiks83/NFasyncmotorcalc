@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Искусственные характеристики — AsyncMotorCalc</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"></path>
+          </svg>
+        </span>
+        <span>
+          AsyncMotorCalc
+          <span class="brand-sub">Расчет характеристик АД</span>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="Основная навигация">
+        <a class="nav-link" href="index.html">Калькулятор</a>
+        <a class="nav-link active" href="modes.html">Режимы работы</a>
+        <a class="nav-link" href="catalog.html">Справочник АИР</a>
+        <a class="nav-link" href="theory.html">Теория</a>
+      </nav>
+      <button id="themeToggle" class="theme-toggle" type="button">&#9790; Темная</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="page-intro">
+      <h1>Искусственные механические характеристики</h1>
+      <p>Исследование способов регулирования скорости асинхронного двигателя: изменение напряжения статора, частоты питания (включая закон U/f = const) и введение добавочного сопротивления в цепь ротора.</p>
+    </section>
+
+    <div class="calc-layout">
+      <aside class="card">
+        <div class="card-header">
+          <h2 class="card-title">Параметры регулирования</h2>
+        </div>
+
+        <div class="form-group">
+          <label for="modesMotorSelect">Двигатель</label>
+          <select id="modesMotorSelect"></select>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <span>Напряжение сети U</span>
+            <span id="voltVal" class="slider-value">100%</span>
+          </div>
+          <input id="voltSlider" type="range" min="50" max="110" step="1" value="100">
+          <div class="slider-hint">Критический момент меняется пропорционально U&sup2;</div>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <span>Частота питания f</span>
+            <span id="freqVal" class="slider-value">50 Гц</span>
+          </div>
+          <input id="freqSlider" type="range" min="20" max="75" step="1" value="50">
+          <label class="checkbox-row" style="margin-top:0.5rem;">
+            <input id="ufConstToggle" type="checkbox">
+            <span>Закон U/f = const (до 50 Гц)</span>
+          </label>
+          <div class="slider-hint">Свыше 50 Гц напряжение ограничивается U<sub>н</sub> (ослабление поля)</div>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <span>Сопротивление ротора R<sub>2&Sigma;</sub></span>
+            <span id="resVal" class="slider-value">&times;1.0 R₂</span>
+          </div>
+          <input id="resSlider" type="range" min="1.0" max="5.0" step="0.1" value="1.0">
+          <div class="slider-hint">Для АД с фазным ротором: смещает s<sub>к</sub> при M<sub>к</sub> = const</div>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <span>Момент нагрузки M<sub>с</sub></span>
+            <span id="loadVal" class="slider-value">100%</span>
+          </div>
+          <input id="loadSlider" type="range" min="20" max="180" step="5" value="100">
+          <div class="slider-hint">Показывает пересечение с рабочей ветвью характеристики</div>
+        </div>
+
+        <div class="form-section-title">Быстрые демонстрации</div>
+        <div class="btn-row">
+          <button id="demoVoltageBtn" type="button" class="btn btn-outline btn-sm">U = 0.8 U<sub>н</sub></button>
+          <button id="demoFreqBtn" type="button" class="btn btn-outline btn-sm">f = 35 Гц (U/f)</button>
+          <button id="demoRotorBtn" type="button" class="btn btn-outline btn-sm">R<sub>доб</sub> (&times;2.5)</button>
+          <button id="resetModesBtn" type="button" class="btn btn-primary btn-sm">Сбросить</button>
+        </div>
+      </aside>
+
+      <div class="results-column">
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Сравнение характеристик n(M)</h2>
+              <p class="card-subtitle">Сплошная линия — естественная, пунктирная — искусственная</p>
+            </div>
+            <button id="dlCompareBtn" type="button" class="btn btn-outline btn-sm no-print">PNG</button>
+          </div>
+          <div class="chart-box chart-box-tall">
+            <canvas id="compareChart"></canvas>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">Сопоставление параметров</h2>
+          </div>
+          <div id="compareMetrics" class="metrics-grid"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>AsyncMotorCalc — веб-приложение для курсовой работы (3 семестр)</span>
+      <span>Методика: формула Клосса • Статический сайт для GitHub Pages</span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="js/motors-data.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/modes-page.js"></script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Калькулятор характеристик АД — AsyncMotorCalc</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"></path>
+          </svg>
+        </span>
+        <span>
+          AsyncMotorCalc
+          <span class="brand-sub">Расчет характеристик АД</span>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="Основная навигация">
+        <a class="nav-link active" href="index.html">Калькулятор</a>
+        <a class="nav-link" href="modes.html">Режимы работы</a>
+        <a class="nav-link" href="catalog.html">Справочник АИР</a>
+        <a class="nav-link" href="theory.html">Теория</a>
+      </nav>
+      <button id="themeToggle" class="theme-toggle" type="button">&#9790; Темная</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="page-intro">
+      <h1>Расчет характеристик асинхронного двигателя</h1>
+      <p>Введите паспортные данные трехфазного асинхронного двигателя или выберите типовую модель серии АИР для автоматического расчета параметров и построения естественных характеристик.</p>
+    </section>
+
+    <div class="calc-layout">
+      <!-- Левая колонка: форма ввода -->
+      <aside class="card">
+        <div class="card-header">
+          <h2 class="card-title">Паспортные данные</h2>
+        </div>
+
+        <form id="motorForm" novalidate>
+          <div class="form-section-title">Быстрый выбор</div>
+          <div class="form-group">
+            <label for="presetSelect">Типовой двигатель (серия АИР)</label>
+            <select id="presetSelect">
+              <option value="">— Пользовательские данные —</option>
+            </select>
+          </div>
+
+          <div class="form-section-title">Основные параметры</div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="pNom">Мощность P<sub>н</sub> <span class="unit">(кВт)</span></label>
+              <input id="pNom" type="number" step="0.01" min="0.01" required>
+            </div>
+            <div class="form-group">
+              <label for="uNom">Напряжение U<sub>н</sub> <span class="unit">(В)</span></label>
+              <input id="uNom" type="number" step="1" min="36" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="freq">Частота f <span class="unit">(Гц)</span></label>
+              <input id="freq" type="number" step="1" min="10" max="400" required>
+            </div>
+            <div class="form-group">
+              <label for="poles">Пары полюсов p <span class="unit" id="syncSpeedHint"></span></label>
+              <select id="poles">
+                <option value="1">1 (2p = 2)</option>
+                <option value="2" selected>2 (2p = 4)</option>
+                <option value="3">3 (2p = 6)</option>
+                <option value="4">4 (2p = 8)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="nNom">Скорость n<sub>н</sub> <span class="unit">(об/мин)</span></label>
+              <input id="nNom" type="number" step="1" min="1" required>
+            </div>
+            <div class="form-group">
+              <label for="eta">КПД &eta;<sub>н</sub> <span class="unit">(%)</span></label>
+              <input id="eta" type="number" step="0.1" min="10" max="99.5" required>
+            </div>
+          </div>
+
+          <div class="form-section-title">Кратности и коэффициенты</div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="cosPhi">cos &phi;<sub>н</sub></label>
+              <input id="cosPhi" type="number" step="0.01" min="0.1" max="1" required>
+            </div>
+            <div class="form-group">
+              <label for="lambdaM">&lambda;<sub>m</sub> = M<sub>к</sub>/M<sub>н</sub></label>
+              <input id="lambdaM" type="number" step="0.1" min="1.1" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="kP">k<sub>п</sub> = M<sub>п</sub>/M<sub>н</sub></label>
+              <input id="kP" type="number" step="0.1" min="0.1" required>
+            </div>
+            <div class="form-group">
+              <label for="kI">k<sub>I</sub> = I<sub>п</sub>/I<sub>н</sub></label>
+              <input id="kI" type="number" step="0.1" min="1.2" required>
+            </div>
+          </div>
+
+          <div class="form-section-title">Настройка модели</div>
+          <label class="checkbox-row">
+            <input id="refinedToggle" type="checkbox">
+            <span>Уточненная формула Клосса (учет R<sub>1</sub>)</span>
+          </label>
+
+          <div id="coeffAGroup" class="form-group hidden">
+            <label for="coeffA">Коэффициент a = R<sub>1</sub> / R<sub>2</sub>'</label>
+            <input id="coeffA" type="number" step="0.05" min="0" max="2" value="0.2">
+          </div>
+
+          <div class="btn-row no-print" style="margin-top: 1rem;">
+            <button type="submit" class="btn btn-primary" style="flex:1;">Рассчитать</button>
+            <button id="resetBtn" type="button" class="btn btn-outline">Сброс</button>
+          </div>
+        </form>
+      </aside>
+
+      <!-- Правая колонка: результаты, графики и таблица -->
+      <div class="results-column">
+        <div id="errorBox" class="alert alert-error hidden"></div>
+        <div id="chartOfflineAlert" class="alert alert-info hidden">
+          Библиотека Chart.js не загрузилась (нет подключения к сети). Числовые расчеты и таблица доступны в полном объеме.
+        </div>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Основные расчетные параметры</h2>
+              <p class="card-subtitle">Характерные точки естественной характеристики</p>
+            </div>
+            <div class="btn-row no-print">
+              <button id="exportCsvBtn" type="button" class="btn btn-outline btn-sm">Скачать CSV</button>
+              <button id="printBtn" type="button" class="btn btn-outline btn-sm">Печать / PDF</button>
+            </div>
+          </div>
+          <div id="metricsGrid" class="metrics-grid"></div>
+        </section>
+
+        <section class="charts-grid">
+          <div class="card chart-card-wide">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Механическая характеристика n(M)</h2>
+                <p class="card-subtitle">Классическое представление с выделением номинальной, критической и пусковой точек</p>
+              </div>
+              <button id="dlMechBtn" type="button" class="btn btn-outline btn-sm no-print">PNG</button>
+            </div>
+            <div class="chart-box chart-box-tall">
+              <canvas id="mechChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Момент от скольжения M(s)</h2>
+                <label class="checkbox-row no-print" style="margin:0.2rem 0 0;font-size:0.8rem;color:var(--text-muted);">
+                  <input id="extendedSlipToggle" type="checkbox">
+                  <span>Показать генераторный и тормозной режимы</span>
+                </label>
+              </div>
+              <button id="dlTorqueBtn" type="button" class="btn btn-outline btn-sm no-print">PNG</button>
+            </div>
+            <div class="chart-box">
+              <canvas id="torqueChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Токовая характеристика I(s)</h2>
+                <p class="card-subtitle">Аппроксимация по точкам I<sub>0</sub>, I<sub>н</sub> и I<sub>п</sub></p>
+              </div>
+              <button id="dlCurrentBtn" type="button" class="btn btn-outline btn-sm no-print">PNG</button>
+            </div>
+            <div class="chart-box">
+              <canvas id="currentChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Таблица расчетных точек</h2>
+              <p class="card-subtitle">Значения в двигательном режиме (0 &le; s &le; 1)</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Скольжение s, о.е.</th>
+                  <th>s, %</th>
+                  <th>n, об/мин</th>
+                  <th>&omega;, рад/с</th>
+                  <th>M, Н·м</th>
+                  <th>I, А</th>
+                  <th>P<sub>2</sub>, кВт</th>
+                </tr>
+              </thead>
+              <tbody id="resultsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>AsyncMotorCalc — веб-приложение для курсовой работы (3 семестр)</span>
+      <span>Методика: формула Клосса • Статический сайт для GitHub Pages</span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="js/motors-data.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/index-page.js"></script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Теория и методика расчета — AsyncMotorCalc</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"></path>
+          </svg>
+        </span>
+        <span>
+          AsyncMotorCalc
+          <span class="brand-sub">Расчет характеристик АД</span>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="Основная навигация">
+        <a class="nav-link" href="index.html">Калькулятор</a>
+        <a class="nav-link" href="modes.html">Режимы работы</a>
+        <a class="nav-link" href="catalog.html">Справочник АИР</a>
+        <a class="nav-link active" href="theory.html">Теория</a>
+      </nav>
+      <button id="themeToggle" class="theme-toggle" type="button">&#9790; Темная</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="page-intro">
+      <h1>Теория и методика инженерного расчета</h1>
+      <p>Математические выражения, используемые в расчетном модуле веб-приложения для построения естественных и искусственных характеристик асинхронного двигателя по паспортным данным.</p>
+    </section>
+
+    <div class="theory-grid">
+      <article class="card">
+        <h2 class="card-title">1. Базовые величины и скольжение</h2>
+        <p class="card-subtitle">Связь частоты сети, числа полюсов и скорости вращения</p>
+
+        <div class="formula-box">
+          <span>n<sub>1</sub> =</span>
+          <span class="frac"><span class="num">60 &middot; f</span><span class="den">p</span></span>
+          <span>,&nbsp;&nbsp;&omega;<sub>0</sub> =</span>
+          <span class="frac"><span class="num">&pi; &middot; n<sub>1</sub></span><span class="den">30</span></span>
+        </div>
+
+        <div class="formula-box">
+          <span>s<sub>н</sub> =</span>
+          <span class="frac"><span class="num">n<sub>1</sub> &minus; n<sub>н</sub></span><span class="den">n<sub>1</sub></span></span>
+          <span>,&nbsp;&nbsp;n(s) = n<sub>1</sub> &middot; (1 &minus; s)</span>
+        </div>
+
+        <ul class="legend-list">
+          <li><strong>n<sub>1</sub>, &omega;<sub>0</sub></strong> — синхронная частота (об/мин) и угловая скорость магнитного поля (рад/с).</li>
+          <li><strong>f, p</strong> — частота питающей сети (Гц) и число пар полюсов обмотки статора.</li>
+          <li><strong>s<sub>н</sub></strong> — номинальное скольжение (обычно 1,5–6% для двигателей средней мощности).</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2 class="card-title">2. Номинальные моменты и токи</h2>
+        <p class="card-subtitle">Определение силовых и энергетических параметров</p>
+
+        <div class="formula-box">
+          <span>M<sub>н</sub> =</span>
+          <span class="frac"><span class="num">P<sub>н</sub> &middot; 1000</span><span class="den">&omega;<sub>н</sub></span></span>
+          <span>&approx;</span>
+          <span class="frac"><span class="num">9549 &middot; P<sub>н</sub></span><span class="den">n<sub>н</sub></span></span>
+          <span>,&nbsp;&nbsp;M<sub>к</sub> = &lambda;<sub>m</sub> &middot; M<sub>н</sub></span>
+        </div>
+
+        <div class="formula-box">
+          <span>I<sub>н</sub> =</span>
+          <span class="frac"><span class="num">P<sub>н</sub> &middot; 1000</span><span class="den">&radic;3 &middot; U<sub>н</sub> &middot; &eta;<sub>н</sub> &middot; cos &phi;<sub>н</sub></span></span>
+          <span>,&nbsp;&nbsp;I<sub>п</sub> = k<sub>I</sub> &middot; I<sub>н</sub></span>
+        </div>
+
+        <ul class="legend-list">
+          <li><strong>M<sub>н</sub>, M<sub>к</sub></strong> — номинальный и максимальный (критический) электромагнитные моменты (Н·м).</li>
+          <li><strong>&lambda;<sub>m</sub></strong> — перегрузочная способность (кратность максимального момента).</li>
+          <li><strong>I<sub>н</sub>, I<sub>п</sub></strong> — номинальный и пусковой фазно-линейные токи статора (А).</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2 class="card-title">3. Формула Клосса (упрощенная и уточненная)</h2>
+        <p class="card-subtitle">Аналитическая зависимость момента от скольжения</p>
+
+        <div class="formula-box">
+          <span>s<sub>к</sub> = s<sub>н</sub> &middot; (&lambda;<sub>m</sub> + &radic;(&lambda;<sub>m</sub>&sup2; &minus; 1))</span>
+        </div>
+
+        <div class="formula-box">
+          <span>M(s) =</span>
+          <span class="frac"><span class="num">2 &middot; M<sub>к</sub></span><span class="den">s/s<sub>к</sub> + s<sub>к</sub>/s</span></span>
+          <span>&nbsp;&nbsp;(упрощенная)</span>
+        </div>
+
+        <div class="formula-box">
+          <span>M(s) =</span>
+          <span class="frac"><span class="num">2 &middot; M<sub>к</sub> &middot; (1 + a &middot; s<sub>к</sub>)</span><span class="den">s/s<sub>к</sub> + s<sub>к</sub>/s + 2a &middot; s<sub>к</sub></span></span>
+          <span>&nbsp;&nbsp;(уточненная)</span>
+        </div>
+
+        <ul class="legend-list">
+          <li><strong>Устойчивая ветвь (0 &le; s &le; s<sub>к</sub>):</strong> рабочий участок двигателя. При росте нагрузки скорость слегка снижается, а момент растет.</li>
+          <li><strong>Неустойчивая ветвь (s<sub>к</sub> &lt; s &le; 1):</strong> пусковой участок. Если нагрузка превысит M<sub>к</sub>, двигатель опрокидывается и останавливается.</li>
+          <li><strong>Коэффициент a = R<sub>1</sub>/R<sub>2</sub>'</strong> учитывает активное сопротивление статора (важно для двигателей малой мощности).</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2 class="card-title">4. Искусственные характеристики</h2>
+        <p class="card-subtitle">Влияние управляющих воздействий на форму кривой n(M)</p>
+
+        <div class="formula-box">
+          <span>U &ne; U<sub>н</sub>:&nbsp;&nbsp;M<sub>к</sub>' = M<sub>к</sub> &middot; (U / U<sub>н</sub>)&sup2;,&nbsp;&nbsp;s<sub>к</sub>' = s<sub>к</sub></span>
+        </div>
+
+        <div class="formula-box">
+          <span>R<sub>доб</sub> &gt; 0:&nbsp;&nbsp;s<sub>к</sub>' = s<sub>к</sub> &middot; (R<sub>2</sub>' + R<sub>доб</sub>) / R<sub>2</sub>',&nbsp;&nbsp;M<sub>к</sub>' = M<sub>к</sub></span>
+        </div>
+
+        <div class="formula-box">
+          <span>U/f = const:&nbsp;&nbsp;n<sub>1</sub>' = n<sub>1</sub> &middot; (f / f<sub>н</sub>),&nbsp;&nbsp;M<sub>к</sub>' &approx; M<sub>к</sub></span>
+        </div>
+
+        <ul class="legend-list">
+          <li><strong>Снижение напряжения</strong> резко уменьшает перегрузочную способность (квадратичная зависимость), поэтому используется в узком диапазоне (например, для вентиляторов).</li>
+          <li><strong>Добавочное сопротивление ротора</strong> увеличивает пусковой момент и делает характеристику более мягкой, но увеличивает потери скольжения.</li>
+          <li><strong>Частотное регулирование (U/f = const)</strong> — наиболее экономичный способ с сохранением жесткости характеристики.</li>
+        </ul>
+      </article>
+    </div>
+
+    <section class="card" style="margin-top: 1.25rem;">
+      <h2 class="card-title">О проекте и структуре приложения</h2>
+      <p style="margin: 0.6rem 0 0; color: var(--text-muted); font-size: 0.92rem;">
+        Приложение реализовано на чистых веб-технологиях (HTML5, CSS3, JavaScript ES6+) с использованием библиотеки <strong>Chart.js</strong> для интерактивной визуализации. Все вычисления выполняются непосредственно в браузере пользователя, без необходимости серверной части, что позволяет размещать проект на <strong>GitHub Pages</strong> и открывать локально.
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>AsyncMotorCalc — веб-приложение для курсовой работы (3 семестр)</span>
+      <span>Методика: формула Клосса • Статический сайт для GitHub Pages</span>
+    </div>
+  </footer>
+</body>
+</html>
